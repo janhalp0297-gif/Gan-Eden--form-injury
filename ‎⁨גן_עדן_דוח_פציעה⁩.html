@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="דוח פציעה">
+<title>דוח תקרית פציעה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root {
+  --bg: #f5f4f0;
+  --card: #ffffff;
+  --border: #e2e0db;
+  --text: #1a1a1a;
+  --muted: #6b6760;
+  --accent: #2c5f2e;
+  --accent-light: #eaf2ea;
+  --accent-border: #b8d4b9;
+  --danger: #8b1a1a;
+  --danger-light: #fdf0f0;
+  --danger-border: #e8c0c0;
+  --warn: #7a5500;
+  --warn-light: #fdf7e9;
+  --warn-border: #e8d5a0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  direction: rtl;
+  min-height: 100vh;
+  font-size: 15px;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.topbar-logo {
+  width: 36px; height: 36px;
+  background: var(--accent-light);
+  border: 1.5px solid var(--accent-border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.topbar-badge {
+  margin-right: auto;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; color: var(--muted); font-weight: 500;
+}
+.form-content { padding: 12px 12px 110px; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+}
+.field { margin-bottom: 10px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+.field input[type=text],
+.field input[type=date],
+.field input[type=time],
+.field input[type=tel],
+.field select,
+.field textarea {
+  width: 100%; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 12px;
+  font-size: 15px; font-family: 'Heebo', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 46px;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent); background: #fff;
+}
+.field textarea { resize: none; height: 80px; line-height: 1.5; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 7px 13px; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 13px; cursor: pointer;
+  user-select: none; color: var(--muted); background: var(--bg);
+  font-family: 'Heebo', sans-serif; min-height: 36px;
+  display: flex; align-items: center; transition: all 0.15s;
+}
+.chip input { display: none; }
+.chip.on { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); font-weight: 600; }
+.sev-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.sev {
+  flex: 1; padding: 11px 6px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+  text-align: center; cursor: pointer; background: var(--bg); color: var(--muted);
+  min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-family: 'Heebo', sans-serif; transition: all 0.15s;
+}
+.sev .dot { width: 12px; height: 12px; border: 1.5px solid currentColor; border-radius: 50%; flex-shrink: 0; }
+.sev.s1.on { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+.sev.s2.on { background: var(--warn-light); color: var(--warn); border-color: var(--warn-border); }
+.sev.s3.on { background: var(--danger-light); color: var(--danger); border-color: var(--danger-border); }
+.ambu-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.ambu-btn {
+  flex: 1; padding: 12px 8px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+  cursor: pointer; background: var(--bg); color: var(--muted);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 50px; font-family: 'Heebo', sans-serif; transition: all 0.15s;
+}
+.ambu-btn.yes { background: var(--danger-light); color: var(--danger); border-color: var(--danger-border); }
+.ambu-btn.no  { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+.photo-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 20px; text-align: center; cursor: pointer; background: var(--bg);
+}
+.photo-zone .zone-icon { font-size: 32px; margin-bottom: 6px; }
+.photo-zone p { font-size: 13px; color: var(--muted); }
+.photo-zone small { font-size: 11px; color: #aaa; }
+.photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 10px; }
+.photo-item { position: relative; aspect-ratio: 4/3; border-radius: var(--radius-sm); overflow: hidden; background: var(--border); }
+.photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-del {
+  position: absolute; top: 4px; left: 4px; width: 24px; height: 24px;
+  background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 50%;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.photo-count { font-size: 12px; color: var(--muted); margin-top: 7px; }
+.sig-area {
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); height: 90px; position: relative;
+  overflow: hidden; cursor: crosshair; touch-action: none;
+}
+.sig-hint {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #ccc; pointer-events: none;
+}
+.sig-clear {
+  position: absolute; top: 7px; left: 8px; font-size: 11px; color: var(--muted);
+  cursor: pointer; z-index: 2; background: rgba(255,255,255,0.85);
+  padding: 3px 7px; border-radius: 5px; border: 1px solid var(--border);
+}
+.bottom-bar {
+  position: fixed; bottom: 0; right: 0; left: 0;
+  background: #fff; border-top: 1px solid var(--border);
+  padding: 10px 12px; display: flex; gap: 8px; z-index: 100;
+}
+.btn-main {
+  flex: 3; padding: 14px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: 'Heebo', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px;
+}
+.btn-main:active { opacity: 0.88; }
+.btn-sec {
+  flex: 1; padding: 14px; background: var(--bg); color: var(--text);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'Heebo', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px;
+}
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 999;
+  align-items: center; justify-content: center;
+}
+.overlay.show { display: flex; }
+.overlay-card { background: #fff; border-radius: var(--radius); padding: 28px 24px; text-align: center; width: 260px; }
+.spinner {
+  width: 38px; height: 38px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.75s linear infinite; margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay-msg { font-size: 14px; color: var(--text); font-weight: 500; }
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #1a1a1a; color: #fff; padding: 11px 20px; border-radius: 25px;
+  font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.25s;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.success-wrap { max-width: 400px; margin: 0 auto; padding: 60px 20px; text-align: center; }
+.success-icon { font-size: 64px; margin-bottom: 16px; }
+.success-h { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.success-p { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+.success-btn {
+  width: 100%; padding: 16px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: 'Heebo', sans-serif;
+}
+.screen { display: none; }
+.screen.active { display: block; }
+@media print {
+  @page { size: A4; margin: 12mm 14mm; }
+  .topbar, .bottom-bar, .photo-zone, .photo-del, .sig-clear, .sig-hint { display: none !important; }
+  body { background: #fff; }
+  .form-content { padding: 0; }
+  .card { box-shadow: none; border: 0.8pt solid #ccc; margin-bottom: 8px; page-break-inside: avoid; }
+  .chip.on { background: #eaf2ea !important; color: #2c5f2e !important; border-color: #b8d4b9 !important; -webkit-print-color-adjust: exact; }
+  .sev.s1.on { background: #eaf2ea !important; color: #2c5f2e !important; -webkit-print-color-adjust: exact; }
+  .sev.s2.on { background: #fdf7e9 !important; color: #7a5500 !important; -webkit-print-color-adjust: exact; }
+  .sev.s3.on { background: #fdf0f0 !important; color: #8b1a1a !important; -webkit-print-color-adjust: exact; }
+  .ambu-btn.yes { background: #fdf0f0 !important; color: #8b1a1a !important; -webkit-print-color-adjust: exact; }
+  .ambu-btn.no  { background: #eaf2ea !important; color: #2c5f2e !important; -webkit-print-color-adjust: exact; }
+  .photo-grid { grid-template-columns: repeat(3,1fr) !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="spinner"></div>
+    <div class="overlay-msg" id="overlay-msg">שולח דוח...</div>
+  </div>
+</div>
+
+<!-- ══ FORM ══ -->
+<div class="screen active" id="screen-form">
+  <div class="topbar">
+    <div class="topbar-logo">🩹</div>
+    <div>
+      <div style="font-size:15px;font-weight:600;">דוח תקרית פציעה</div>
+      <div style="font-size:11px;color:var(--muted);">גן עדן אירועים</div>
+    </div>
+    <div class="topbar-badge" id="doc-badge">INC-000000</div>
+  </div>
+
+  <div class="form-content">
+
+    <div class="card">
+      <div class="card-title">📅 פרטי האירוע</div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>תאריך האירוע</label><input type="date" id="ev-date"></div>
+        <div class="field"><label>שעת התקרית</label><input type="time" id="ev-time"></div>
+      </div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>שם בעל האירוע</label><input type="text" id="ev-host" placeholder="שם מלא"></div>
+        <div class="field"><label>סוג האירוע</label>
+          <select id="ev-type">
+            <option value="">בחר...</option>
+            <option>חתונה</option><option>אירוסין</option>
+            <option>בר / בת מצווה</option><option>מסיבה פרטית</option><option>אחר</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>מיקום בגן</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="loc" value="אולם ראשי"> אולם</label>
+          <label class="chip"><input type="radio" name="loc" value="גן / חצר"> גן / חצר</label>
+          <label class="chip"><input type="radio" name="loc" value="חניה"> חניה</label>
+          <label class="chip"><input type="radio" name="loc" value="כניסה / יציאה"> כניסה</label>
+          <label class="chip"><input type="radio" name="loc" value="שירותים"> שירותים</label>
+          <label class="chip"><input type="radio" name="loc" value="בר"> בר</label>
+          <label class="chip"><input type="radio" name="loc" value="מטבח"> מטבח</label>
+          <label class="chip"><input type="radio" name="loc" value="אחר"> אחר</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👤 פרטי הנפגע</div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>שם מלא</label><input type="text" id="inj-name" placeholder="שם ושם משפחה"></div>
+        <div class="field"><label>ת.ז. / דרכון</label><input type="text" id="inj-id" placeholder="מספר מזהה"></div>
+      </div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>גיל</label><input type="text" id="inj-age" placeholder="גיל"></div>
+        <div class="field"><label>טלפון</label><input type="tel" id="inj-phone" placeholder="050-0000000"></div>
+      </div>
+      <div class="field">
+        <label>קשר לבעל האירוע</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="rel" value="אורח"> אורח</label>
+          <label class="chip"><input type="radio" name="rel" value="חתן / כלה"> חתן/כלה</label>
+          <label class="chip"><input type="radio" name="rel" value="עובד הגן"> עובד גן</label>
+          <label class="chip"><input type="radio" name="rel" value="ספק / נותן שירות"> ספק</label>
+          <label class="chip"><input type="radio" name="rel" value="אחר"> אחר</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🩺 פרטי הפציעה</div>
+      <div class="field"><label>חומרת הפציעה</label></div>
+      <div class="sev-row">
+        <button class="sev s1" onclick="selSev(this,'קלה')"><span class="dot"></span>קלה</button>
+        <button class="sev s2" onclick="selSev(this,'בינונית')"><span class="dot"></span>בינונית</button>
+        <button class="sev s3" onclick="selSev(this,'קשה / חמורה')"><span class="dot"></span>קשה</button>
+      </div>
+      <input type="hidden" id="sev-val">
+      <div class="field">
+        <label>סוג הפציעה — ניתן לסמן מספר</label>
+        <div class="chips" id="inj-chips">
+          <label class="chip"><input type="checkbox" value="חתך / שפשוף"> חתך</label>
+          <label class="chip"><input type="checkbox" value="שבר"> שבר</label>
+          <label class="chip"><input type="checkbox" value="נפילה"> נפילה</label>
+          <label class="chip"><input type="checkbox" value="כוויה"> כוויה</label>
+          <label class="chip"><input type="checkbox" value="פגיעת ראש"> פגיעת ראש</label>
+          <label class="chip"><input type="checkbox" value="עילפון / קריסה"> עילפון</label>
+          <label class="chip"><input type="checkbox" value="כאבים בחזה"> כאבי חזה</label>
+          <label class="chip"><input type="checkbox" value="אלרגיה / רגישות"> אלרגיה</label>
+          <label class="chip"><input type="checkbox" value="אחר"> אחר</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>תיאור קצר — מה קרה?</label>
+        <textarea id="inj-desc" placeholder="תאר בקצרה כיצד התרחשה הפציעה..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧰 טיפול שניתן</div>
+      <div class="field">
+        <label>טיפול ראשוני</label>
+        <div class="chips" id="aid-chips">
+          <label class="chip"><input type="checkbox" value="עזרה ראשונה בסיסית"> עזרה ראשונה</label>
+          <label class="chip"><input type="checkbox" value="חבישה"> חבישה</label>
+          <label class="chip"><input type="checkbox" value="קירור"> קירור</label>
+          <label class="chip"><input type="checkbox" value="הגבהת גף"> הגבהת גף</label>
+          <label class="chip"><input type="checkbox" value="CPR"> CPR</label>
+          <label class="chip"><input type="checkbox" value="ציוד AED"> AED</label>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>האם הוזמן אמבולנס?</label>
+        <div class="ambu-row">
+          <button class="ambu-btn" id="ambu-yes" onclick="selAmbu('yes')">🚑 כן, הוזמן</button>
+          <button class="ambu-btn" id="ambu-no"  onclick="selAmbu('no')">✅ לא נדרש</button>
+        </div>
+        <input type="hidden" id="ambu-val">
+      </div>
+      <div id="ambu-extra" style="display:none;">
+        <div class="row2">
+          <div class="field"><label>מס׳ קריאה מד"א</label><input type="text" id="ambu-ref" placeholder="מספר קריאה"></div>
+          <div class="field"><label>בית חולים / יעד פינוי</label><input type="text" id="ambu-dest" placeholder="שם בי״ח"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>שם המטפל + תפקיד</label>
+        <input type="text" id="treater" placeholder="למשל: נציג מד״א, רופא...">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📷 תיעוד צילומי</div>
+      <div class="photo-zone" onclick="document.getElementById('photo-input').click()" id="photo-zone">
+        <div class="zone-icon">📸</div>
+        <p>לחץ לצילום או בחירה מהגלריה</p>
+        <small>ניתן לצרף עד 8 תמונות</small>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" multiple style="display:none;">
+      <div class="photo-grid" id="photo-grid"></div>
+      <div class="photo-count" id="photo-count"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👁️ עדים לתקרית</div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>שם עד 1</label><input type="text" id="w1n" placeholder="שם מלא"></div>
+        <div class="field"><label>טלפון עד 1</label><input type="tel" id="w1p" placeholder="050-0000000"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>שם עד 2</label><input type="text" id="w2n" placeholder="שם מלא"></div>
+        <div class="field"><label>טלפון עד 2</label><input type="tel" id="w2p" placeholder="050-0000000"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✍️ חתימת מנהל האירוע</div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field"><label>שם מנהל האירוע</label><input type="text" id="mgr-name" placeholder="שם מלא"></div>
+        <div class="field"><label>שעת מילוי</label><input type="time" id="mgr-time"></div>
+      </div>
+      <div class="field">
+        <label>חתימה</label>
+        <div class="sig-area" id="sig-box">
+          <div class="sig-hint" id="sig-hint">חתום כאן באצבע</div>
+          <span class="sig-clear" onclick="clearSig()">נקה</span>
+          <canvas id="sig-canvas" style="width:100%;height:100%;"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-main" onclick="sendReport()">📨 שלח דוח במייל</button>
+    <button class="btn-sec" onclick="window.print()">🖨️ הדפס</button>
+  </div>
+</div>
+
+<!-- ══ SUCCESS ══ -->
+<div class="screen" id="screen-success">
+  <div class="success-wrap">
+    <div class="success-icon">✅</div>
+    <h2 class="success-h">הדוח נשלח בהצלחה!</h2>
+    <p class="success-p">
+      הדוח הועבר למייל office@gan-eden.co.il<br>
+      עם כל הפרטים והתמונות המצורפות.
+    </p>
+    <button class="success-btn" onclick="newReport()">📋 פתח דוח חדש</button>
+  </div>
+</div>
+
+<script>
+// ── פרטי EmailJS קבועים ──
+const EJS = {
+  pub:      'hNCl3WKH5i1Icy9WZ',
+  service:  'service_yi3c5wm',
+  template: 'template_45ai0zu',
+  email:    'office@gan-eden.co.il'
+};
+
+let photos = [];
+let docNum = genDoc();
+let sigCanvas, sigCtx, drawing = false, lx, ly;
+
+function genDoc() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = String(now.getFullYear()).slice(-2);
+  const r = String(Math.floor(Math.random()*999)).padStart(3,'0');
+  return `INC-${y}${m}${d}-${r}`;
+}
+
+window.addEventListener('load', () => {
+  emailjs.init(EJS.pub);
+  initForm();
+});
+
+function initForm() {
+  docNum = genDoc();
+  document.getElementById('doc-badge').textContent = docNum;
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('ev-date').value  = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  const t = pad(now.getHours())+':'+pad(now.getMinutes());
+  document.getElementById('ev-time').value  = t;
+  document.getElementById('mgr-time').value = t;
+  initSig();
+}
+
+// chips
+document.addEventListener('change', e => {
+  const inp = e.target;
+  if (inp.type === 'radio') {
+    document.querySelectorAll(`input[name=${inp.name}]`).forEach(r => {
+      r.closest('.chip').classList.toggle('on', r.checked);
+    });
+  }
+  if (inp.type === 'checkbox') {
+    inp.closest('.chip').classList.toggle('on', inp.checked);
+  }
+});
+
+function selSev(el, val) {
+  document.querySelectorAll('.sev').forEach(s => s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sev-val').value = val;
+}
+
+function selAmbu(v) {
+  document.getElementById('ambu-val').value = v;
+  document.getElementById('ambu-yes').className = 'ambu-btn'+(v==='yes'?' yes':'');
+  document.getElementById('ambu-no').className  = 'ambu-btn'+(v==='no' ?' no' :'');
+  document.getElementById('ambu-extra').style.display = v==='yes'?'block':'none';
+}
+
+// photos
+document.getElementById('photo-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => compress(ev.target.result, src => {
+      photos.push({ id: Date.now()+Math.random(), src });
+      renderPhotos();
+    });
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
+
+function compress(src, cb) {
+  const img = new Image();
+  img.onload = () => {
+    // מגבלת EmailJS ~50KB לתמונה — דוחסים חזק
+    const MAX = 500;
+    let w = img.width, h = img.height;
+    if (w > MAX) { h = Math.round(h*MAX/w); w = MAX; }
+    if (h > MAX) { w = Math.round(w*MAX/h); h = MAX; }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    // דחיסה חזקה — 0.4 איכות, מספיק לתיעוד
+    cb(c.toDataURL('image/jpeg', 0.4));
+  };
+  img.src = src;
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  photos.forEach((p,i) => {
+    const d = document.createElement('div');
+    d.className = 'photo-item';
+    d.innerHTML = `<img src="${p.src}" alt="תמונה ${i+1}">
+      <button class="photo-del" onclick="removePhoto('${p.id}')">✕</button>`;
+    grid.appendChild(d);
+  });
+  document.getElementById('photo-count').textContent = photos.length ? photos.length+' תמונות מצורפות' : '';
+  document.getElementById('photo-zone').style.display = photos.length >= 8 ? 'none' : '';
+}
+
+function removePhoto(id) {
+  photos = photos.filter(p => String(p.id) !== String(id));
+  renderPhotos();
+}
+
+// signature
+function initSig() {
+  sigCanvas = document.getElementById('sig-canvas');
+  const box = document.getElementById('sig-box');
+  setTimeout(() => {
+    sigCanvas.width  = box.offsetWidth  || 500;
+    sigCanvas.height = box.offsetHeight || 90;
+    sigCtx = sigCanvas.getContext('2d');
+    sigCtx.strokeStyle = '#1a1a1a';
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+  }, 150);
+}
+
+function gp(e) {
+  const r = sigCanvas.getBoundingClientRect();
+  const s = e.touches ? e.touches[0] : e;
+  return [s.clientX-r.left, s.clientY-r.top];
+}
+
+document.getElementById('sig-canvas').addEventListener('mousedown',  e => { drawing=true; [lx,ly]=gp(e); document.getElementById('sig-hint').style.display='none'; });
+document.getElementById('sig-canvas').addEventListener('mousemove',  e => { if(!drawing)return; const[x,y]=gp(e); sigCtx.beginPath(); sigCtx.moveTo(lx,ly); sigCtx.lineTo(x,y); sigCtx.stroke(); [lx,ly]=[x,y]; });
+document.getElementById('sig-canvas').addEventListener('mouseup',    () => drawing=false);
+document.getElementById('sig-canvas').addEventListener('mouseleave', () => drawing=false);
+document.getElementById('sig-canvas').addEventListener('touchstart', e => { e.preventDefault(); drawing=true; [lx,ly]=gp(e); document.getElementById('sig-hint').style.display='none'; }, {passive:false});
+document.getElementById('sig-canvas').addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing)return; const[x,y]=gp(e); sigCtx.beginPath(); sigCtx.moveTo(lx,ly); sigCtx.lineTo(x,y); sigCtx.stroke(); [lx,ly]=[x,y]; }, {passive:false});
+document.getElementById('sig-canvas').addEventListener('touchend',   () => drawing=false);
+
+function clearSig() {
+  if(sigCtx) sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  document.getElementById('sig-hint').style.display = 'flex';
+}
+
+// helpers
+function v(id) { return document.getElementById(id)?.value || '—'; }
+
+function buildEmail() {
+  const injTypes = Array.from(document.querySelectorAll('#inj-chips .chip.on')).map(c=>c.textContent.trim()).join(', ') || '—';
+  const aidTypes = Array.from(document.querySelectorAll('#aid-chips .chip.on')).map(c=>c.textContent.trim()).join(', ') || '—';
+  const loc = document.querySelector('input[name=loc]:checked')?.value || '—';
+  const rel = document.querySelector('input[name=rel]:checked')?.value || '—';
+  const sev = v('sev-val');
+  const ambu = v('ambu-val')==='yes' ? '✅ כן' : v('ambu-val')==='no' ? '❌ לא' : '—';
+  const sevColor = sev==='קלה' ? '#2c5f2e' : sev==='בינונית' ? '#7a5500' : '#8b1a1a';
+
+  let imgs = '';
+  photos.forEach((p,i) => {
+    imgs += `<tr><td colspan="2" style="padding:8px 0;">
+      <p style="font-size:12px;color:#888;margin:0 0 5px;">📷 תמונה ${i+1}</p>
+      <img src="${p.src}" style="max-width:320px;border-radius:8px;border:1px solid #eee;display:block;">
+    </td></tr>`;
+  });
+
+  const row = (label, value) =>
+    `<tr>
+      <td style="padding:5px 12px 5px 0;color:#888;font-size:13px;white-space:nowrap;vertical-align:top;width:35%;">${label}</td>
+      <td style="padding:5px 0;font-size:13px;font-weight:500;">${value}</td>
+    </tr>`;
+
+  const section = title =>
+    `<tr><td colspan="2" style="padding:12px 0 6px;font-weight:700;font-size:14px;color:#2c5f2e;border-bottom:2px solid #eaf2ea;">${title}</td></tr>`;
+
+  return `
+<div style="direction:rtl;font-family:Arial,sans-serif;max-width:620px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e0e0e0;">
+  <div style="background:#2c5f2e;padding:20px 24px;">
+    <h2 style="margin:0;font-size:20px;color:#fff;font-weight:700;">🩹 דוח תקרית פציעה</h2>
+    <p style="margin:5px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">
+      מס׳ דוח: <strong>${docNum}</strong> &nbsp;|&nbsp; ${new Date().toLocaleString('he-IL')}
+    </p>
+  </div>
+  <div style="padding:18px 24px;">
+    <table style="width:100%;border-collapse:collapse;">
+      ${section('📅 פרטי האירוע')}
+      ${row('תאריך', v('ev-date'))}
+      ${row('שעת תקרית', v('ev-time'))}
+      ${row('בעל האירוע', v('ev-host'))}
+      ${row('סוג האירוע', v('ev-type'))}
+      ${row('מיקום בגן', loc)}
+      ${section('👤 פרטי הנפגע')}
+      ${row('שם', v('inj-name'))}
+      ${row('ת.ז. / דרכון', v('inj-id'))}
+      ${row('גיל', v('inj-age'))}
+      ${row('טלפון', v('inj-phone'))}
+      ${row('קשר', rel)}
+      ${section('🩺 פרטי הפציעה')}
+      ${row('חומרה', `<strong style="color:${sevColor};">${sev}</strong>`)}
+      ${row('סוג פציעה', injTypes)}
+      ${row('תיאור', v('inj-desc'))}
+      ${section('🧰 טיפול שניתן')}
+      ${row('טיפול ראשוני', aidTypes)}
+      ${row('אמבולנס', ambu)}
+      ${v('ambu-val')==='yes' ? row('מס׳ קריאה', v('ambu-ref'))+row('יעד פינוי', v('ambu-dest')) : ''}
+      ${row('מטפל', v('treater'))}
+      ${section('👁️ עדים')}
+      ${row('עד 1', v('w1n')+(v('w1p')!=='—'?' | '+v('w1p'):''))}
+      ${row('עד 2', v('w2n')+(v('w2p')!=='—'?' | '+v('w2p'):''))}
+      ${section('✍️ מנהל האירוע')}
+      ${row('שם', v('mgr-name'))}
+      ${row('שעת מילוי', v('mgr-time'))}
+      ${photos.length ? section(`📷 תמונות מצורפות (${photos.length})`)+imgs : ''}
+    </table>
+    <p style="margin:20px 0 0;font-size:11px;color:#bbb;border-top:1px solid #eee;padding-top:12px;text-align:center;">
+      דוח זה נוצר אוטומטית ומיועד לחברת הביטוח ולתיעוד פנים-ארגוני — גן עדן אירועים
+    </p>
+  </div>
+</div>`;
+}
+
+async function sendReport() {
+  const emailBody = buildEmail();
+  // בדיקת גודל לפני שליחה (EmailJS מגביל ~200KB)
+  const sizeKB = Math.round(emailBody.length * 0.75 / 1024);
+  if (sizeKB > 180) {
+    toast('⚠️ יותר מדי תמונות — הסר אחת או שתיים ונסה שוב');
+    return;
+  }
+  showOverlay('שולח דוח...');
+  try {
+    await emailjs.send(EJS.service, EJS.template, {
+      to_email: EJS.email,
+      subject:  `דוח תקרית פציעה — ${docNum} — ${v('inj-name')}`,
+      doc_num:  docNum,
+      message:  emailBody
+    });
+    hideOverlay();
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-success').classList.add('active');
+  } catch(err) {
+    hideOverlay();
+    const msg = err?.text || err?.message || JSON.stringify(err);
+    if (msg.includes('quota') || msg.includes('limit')) {
+      toast('⚠️ חרגת ממכסת EmailJS החודשית (200 מיילים)');
+    } else if (msg.includes('payload') || msg.includes('size') || msg.includes('large')) {
+      toast('⚠️ הדוח גדול מדי — הסר תמונה אחת ונסה שוב');
+    } else {
+      toast('❌ שגיאה: ' + msg.slice(0, 60));
+    }
+    console.error('EmailJS error:', err);
+  }
+}
+
+function newReport() {
+  photos = [];
+  document.querySelectorAll('input[type=text],input[type=tel],textarea').forEach(el => {
+    if (!['ev-date','ev-time','mgr-time'].includes(el.id)) el.value='';
+  });
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.sev.on').forEach(s=>s.classList.remove('on'));
+  document.getElementById('ambu-yes').className='ambu-btn';
+  document.getElementById('ambu-no').className='ambu-btn';
+  document.getElementById('ambu-extra').style.display='none';
+  document.getElementById('ambu-val').value='';
+  document.getElementById('sev-val').value='';
+  renderPhotos();
+  clearSig();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-form').classList.add('active');
+  initForm();
+  window.scrollTo(0,0);
+}
+
+function showOverlay(msg) {
+  document.getElementById('overlay-msg').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+function toast(msg, dur=4000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+</script>
+</body>
+</html>
